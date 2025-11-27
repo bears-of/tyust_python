@@ -1,11 +1,10 @@
-```markdown
 ## 🌟 TYUST 统一身份认证与教务系统爬虫
 
 [![Python 3.x](https://img.shields.io/badge/Python-3.x-blue?style=for-the-badge&logo=python)](https://www.python.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-16%2B-green?style=for-the-badge&logo=node.js)](https://nodejs.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-本项目是一个功能强大的 Python 脚本，旨在模拟登录太原理工大学（TYUST）的统一身份认证系统（SSO），并自动化地从教务系统（JWGLXT）获取学生的**个人信息**、**课程表**和**成绩**。
+本项目是一个功能强大的 Python 脚本，旨在模拟登录太原科技大学（TYUST）的统一身份认证系统（SSO），并自动化地从教务系统（JWGLXT）获取学生的**个人信息**、**课程表**和**成绩**。
 
 ---
 
@@ -37,8 +36,6 @@
 ### 2. 文件结构
 
 请确保您的项目文件夹中包含以下两个文件：
-
-```
 
 .
 ├── tyust.py        \# 核心爬虫和请求逻辑 (Python)
@@ -127,7 +124,7 @@ python tyust.py
 教师: XXX, 学分: 3.5, 类别: 必修, 周次: 1-16周
 --------------------------------------------------
 课程名: 创新创业基础
-节次: 5-6节, 星期: 星期一, 地点: 明向校区B04
+节次: 5-6节, 星期: 星期一, 地点: 主校区B04
 教师: XXX, 学分: 1.0, 类别: 必修, 周次: 1-16周
 ...
 ```
