@@ -1,0 +1,5 @@
+/.venv
+/node_modules
+/.idea
+demo.html
+package-lock.json
