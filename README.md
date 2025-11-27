@@ -1,154 +1,161 @@
-教务系统自动化登录与数据获取工具
+```markdown
+## 🌟 TYUST 统一身份认证与教务系统爬虫
 
-这是一个用于自动化登录教务系统并获取课程表、成绩和个人信息的Python脚本工具。
+[![Python 3.x](https://img.shields.io/badge/Python-3.x-blue?style=for-the-badge&logo=python)](https://www.python.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-16%2B-green?style=for-the-badge&logo=node.js)](https://nodejs.org/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-功能特性
+本项目是一个功能强大的 Python 脚本，旨在模拟登录太原理工大学（TYUST）的统一身份认证系统（SSO），并自动化地从教务系统（JWGLXT）获取学生的**个人信息**、**课程表**和**成绩**。
 
-• 🔐 自动化登录：通过模拟登录流程获取访问令牌
+---
 
-• 📊 课程表查询：获取当前学期的课程安排信息
+## 💡 主要功能
 
-• 📈 成绩查询：查询指定学年的成绩详情
+本项目能够安全地处理登录加密和多系统间的会话跳转，实现以下核心功能：
 
-• 👤 个人信息：提取学生基本信息（学号、姓名、学院等）
+* **🔑 SSO 模拟登录**：处理登录页面的动态参数和密码的 **DES 加密**。
+* **🔗 多系统会话保持**：管理和传递 SSO、门户和 JWGLXT 之间复杂的 `Cookie` 集合（包括 `SESSION`, `__access_token`, `route` 等）。
+* **👤 学生个人信息查询**：从教务系统抓取用户的详细档案信息（如学号、姓名、学院、专业、班级）。
+* **📅 课程表获取**：查询指定学年的学生个人课表。
+* **💯 成绩查询**：查询指定学年学期的所有科目成绩，并解析出百分制成绩、绩点和学分。
 
-• 🔒 加密处理：使用DES加密处理密码传输
+---
 
-项目结构
+## 🛠️ 环境准备
 
+本项目需要 **Python** 环境来运行主爬虫脚本，并依赖 **Node.js** 环境来执行 JavaScript 文件中的加密函数。
 
-├── main.py                 # 主程序文件
-├── tyust_login.js         # 加密处理模块
-└── README.md              # 项目说明文档
+### 1. 安装依赖
 
+您需要安装 Python 和 Node.js 的相关依赖库。
 
-依赖环境
+| 环境 | 依赖库 | 安装命令 |
+| :--- | :--- | :--- |
+| **Python** | `requests`, `pyexecjs` | `pip install requests pyexecjs` |
+| **Node.js** | `crypto-js` | `npm install crypto-js` |
 
-Python依赖
+### 2. 文件结构
 
-pip install requests execjs pycryptodome
+请确保您的项目文件夹中包含以下两个文件：
 
+```
 
-JavaScript依赖
+.
+├── tyust.py        \# 核心爬虫和请求逻辑 (Python)
+└── tyust\_login.js  \# 密码加密逻辑 (JavaScript)
 
-npm install crypto-js
+````
 
+---
 
-使用方法
+## 🚀 使用指南
 
-1. 基本配置
+### 1. 修改登录凭证
 
-在main.py文件末尾修改以下参数：
+在运行 `tyust.py` 之前，您必须在文件底部的 `if __name__ == '__main__':` 块中修改您的 **学号** 和 **密码**。
+
+```python
+# tyust.py (部分代码)
+
 if __name__ == '__main__':
-    # 修改为你的学号和密码
-    ret = execjs.compile(open('tyust_login.js', 'r', encoding='utf-8').read()).call(
-        'get_crypto_and_password', '你的密码'
-    )
+    # ⚠️ 1. 替换为您的真实密码
+    ret = execjs.compile(open('tyust_login.js', 'r', encoding='utf-8').read()).call('get_crypto_and_password',
+                                                                                    '您的真实密码') 
+    
     session, execution_code = get_session()
-    code, _, sourceid_tgc, rg_objectid = get_login_code('你的学号', session, execution_code)
-    # ... 其余代码
+    
+    # ⚠️ 2. 替换为您的真实学号
+    code, _, sourceid_tgc, rg_objectid = get_login_code('您的真实学号', session, execution_code)
+    
+    # ... 其他步骤 ...
+    
+    # ⚠️ 3. 可选：修改查询的学年和学期
+    # '2024' 为学年；'3' 为学期 (3=上学期/秋季, 12=下学期/春季)
+    get_user_scores(jwglxt_jsession,route,'2024','3') 
+````
 
+### 2\. 执行脚本
 
-2. 功能调用
+在终端中运行 Python 脚本：
 
-获取个人信息
+```bash
+python tyust.py
+```
 
-get_user_detail_information(jwglxt_jsession, route)
+执行结果（个人信息、课表和成绩）将直接打印到控制台中。
 
+-----
 
-获取课程表
+## ⚙️ 加密机制解析
 
-get_current_course(jwglxt_jsession, _access_token, route)
+登录过程涉及到的密码加密由 `tyust_login.js` 处理，并通过 `execjs` 库在 Python 中调用。
 
+| 参数 | 来源 | 作用 |
+| :--- | :--- | :--- |
+| `crypto` | `generateDesKey()` | 随机生成并 Base64 编码的 8 字节 DES 密钥。|
+| `password` | `get_crypto_and_password()` | 使用 `crypto` 作为密钥，对原始密码进行 **DES ECB/PKCS7** 加密后 Base64 编码的密文。|
 
-获取成绩信息
+### DES 加密流程
 
-# 参数说明：xnm-学年，xqm-学期（3或12）
-get_user_scores(jwglxt_jsession, route, '2024', '3')
+1.  随机生成一个 8 字节的 DES 密钥 (`generateDesKey`)。
+2.  将此密钥 Base64 编码后作为请求参数 `crypto` 提交。
+3.  使用该密钥以 **ECB** 模式和 **Pkcs7** 填充对用户密码进行加密 (`CryptoJS.DES.encrypt`)。
+4.  将加密后的密文 Base64 编码后作为请求参数 `password` 提交。
 
+-----
 
-输出示例
+## 📝 输出结果示例
 
-课程表输出格式
+运行脚本后，您将在控制台看到如下格式化输出：
 
+### 个人信息
 
-课程名: 高等数学
-节次: 1-2, 星期: 星期一, 地点: 教学楼A101
-教师: 张老师, 学分: 4.0, 类别: 必修, 周次: 1-16周
+```
+学号: 202112181110
+姓名: XXX
+证件类型: 居民身份证
+学院名称: 计算机科学与技术学院
+专业名称: 软件工程
+班级名称: 软件2101
+```
 
+### 课程表
 
-个人信息输出格式
+```
+课程名: 编译原理
+节次: 3-4节, 星期: 星期一, 地点: 计科楼B204
+教师: XXX, 学分: 3.5, 类别: 必修, 周次: 1-16周
+--------------------------------------------------
+课程名: 创新创业基础
+节次: 5-6节, 星期: 星期一, 地点: 明向校区B04
+教师: XXX, 学分: 1.0, 类别: 必修, 周次: 1-16周
+...
+```
 
+### 成绩详情
 
-学号: 2024123456
-姓名: 张三
-学院名称: 计算机学院
-专业名称: 计算机科学与技术
-班级名称: 计算机2101班
-
-
-成绩信息输出格式
-
-
---- 学生: 张三 (2024学年 第3学期) 成绩详情 ---
+```
+--- 学生: XXX (2024学年 第上学期) 成绩详情 ---
 
 --- 科目 1 ---
-  课程名称: 高等数学
+  课程名称: 大数据导论
   课程类别: 必修
   成绩: 85
   绩点 (JD): 3.5
-  学分 (XF): 4.0
-  任课教师: 李老师
-  开课部门: 数学学院
+  学分 (XF): 2.0
+  任课教师: XXX
+  开课部门: 计算机科学与技术学院
 
+--- 科目 2 ---
+  课程名称: 计算机网络
+  课程类别: 必修
+  成绩: 92
+  绩点 (JD): 4.2
+  学分 (XF): 3.5
+  任课教师: XXX
+  开课部门: 计算机科学与技术学院
+...
+```
 
-技术实现
-
-登录流程
-
-1. 获取初始会话和验证码
-2. 使用DES加密密码
-3. 通过CAS单点登录认证
-4. 获取访问令牌和路由信息
-5. 建立教务系统会话
-
-数据加密
-
-• 使用DES算法加密密码传输
-
-• 生成随机的CSRF令牌
-
-• 基于时间戳的设备ID生成
-
-注意事项
-
-1. 合规使用：请确保遵守学校网络使用规定
-2. 频率限制：避免频繁请求，防止被系统封禁
-3. 数据安全：妥善保管个人账号信息
-4. 系统更新：教务系统更新可能导致脚本失效
-
-故障排除
-
-常见问题
-
-1. 登录失败：检查学号密码是否正确，网络连接是否正常
-2. 数据获取失败：可能是系统维护或接口变更
-3. 依赖安装失败：确保Node.js和Python环境配置正确
-
-调试模式
-
-取消注释代码中的headers部分可以启用详细调试信息。
-
-许可证
-
-本项目仅供学习和研究使用，请遵守相关法律法规和学校规定。
-
-更新日志
-
-• v1.0：初始版本，支持基本登录和数据获取功能
-
-• 支持课程表、成绩、个人信息查询
-
-• 实现完整的登录认证流程
-
-免责声明：本工具仅用于技术学习，使用者应承担因不当使用而产生的一切后果。
+```
+```
